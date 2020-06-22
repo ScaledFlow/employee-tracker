@@ -73,11 +73,11 @@ function runSearch() {
           break;
 
         case "Add Employee":
-          songSearch();
+          add_employee();
           break;
 
         case "Add Department":
-          songSearch();
+          add_department();
           break;
 
         case "Add Role":
@@ -146,21 +146,82 @@ function view_employees_by_manager() {
   });
 }
 
+// connection.query("select * from roles", function (err, res) {
+//   if (err) throw err;
+//   console.table(res);
+//   runSearch();
+// });
 
 function add_employee() {
-  connection.query("INSERT INTO departments (department_name) VALUES ("QA")", function (err, res) {
+  // query the database for all items being auctioned
+  connection.query("SELECT * FROM roles", function (err, results) {
     if (err) throw err;
-    console.table(res);
-    runSearch();
+    // console.table(results[0].title);
+    // once you have the items, prompt the user for which they'd like to bid on
+
+    inquirer
+      .prompt([
+        {
+          name: "first_name",
+          type: "input",
+          message: "What is the employees first name?",
+        },
+        {
+          name: "last_name",
+          type: "input",
+          message: "What is the employees last name?",
+        },
+        {
+          name: "role",
+          type: "rawlist",
+          choices: function () {
+            var choiceArray = [];
+            for (var i = 0; i < results.length; i++) {
+              choiceArray.push(results[i].title);
+            }
+            return choiceArray;
+          },
+          message: "What role will the employee file?",
+        },
+      ])
+      .then(function (answer) {
+        console.log(answer);
+        connection.query(
+          "select * from Roles",
+          // {
+          //   department_name: answer.addDept,
+          // },
+          function (err) {
+            if (err) throw err;
+            // console.table(res);
+            runSearch();
+          }
+        );
+      });
   });
 }
 
 function add_department() {
-  connection.query("SELECT * FROM departments", function (err, res) {
-    if (err) throw err;
-    console.table(res);
-    runSearch();
-  });
+  inquirer
+    .prompt({
+      name: "addDept",
+      type: "input",
+      message: "Enter the name of the department to add.",
+    })
+    .then(function (answer) {
+      console.log(answer.addDept);
+      connection.query(
+        "INSERT INTO departments SET ?",
+        {
+          department_name: answer.addDept,
+        },
+        function (err) {
+          if (err) throw err;
+          // console.table(res);
+          runSearch();
+        }
+      );
+    });
 }
 
 function add_role() {
