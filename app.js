@@ -38,12 +38,15 @@ function runSearch() {
       message: "What would you like to do?",
       choices: [
         "View All Employees",
+        "View All Departments",
+        "View All Roles",
         "View All Employees by Department",
         "View All Employees by Manager",
         "Add Employee",
+        "Add Department",
+        "Add Role",
         "Remove Employee",
         "Update Employee Role",
-        "Remove Employee Manager",
         "End Connection",
       ],
     })
@@ -53,15 +56,31 @@ function runSearch() {
           view_employees();
           break;
 
+        case "View All Departments":
+          view_departments();
+          break;
+
+        case "View All Roles":
+          view_roles();
+          break;
+
         case "View All Employees by Department":
           view_employees_by_dept();
           break;
 
         case "View All Employees by Manager":
-          rangeSearch();
+          view_employees_by_manager();
           break;
 
         case "Add Employee":
+          songSearch();
+          break;
+
+        case "Add Department":
+          songSearch();
+          break;
+
+        case "Add Role":
           songSearch();
           break;
 
@@ -92,6 +111,22 @@ function view_employees() {
   });
 }
 
+function view_departments() {
+  connection.query("SELECT * FROM departments", function (err, res) {
+    if (err) throw err;
+    console.table(res);
+    runSearch();
+  });
+}
+
+function view_roles() {
+  connection.query("SELECT * FROM roles", function (err, res) {
+    if (err) throw err;
+    console.table(res);
+    runSearch();
+  });
+}
+
 function view_employees_by_dept() {
   connection.query(
     "SELECT employees.first_name, employees.last_name, roles.title, departments.department_name FROM employees JOIN roles on employees.role_id = roles.role_id JOIN departments on departments.department_id = roles.department_id",
@@ -103,13 +138,36 @@ function view_employees_by_dept() {
   );
 }
 
-function process_departments() {
+function view_employees_by_manager() {
   connection.query("SELECT * FROM departments", function (err, res) {
     if (err) throw err;
-    //console.log(res[0].department_name);
-    //console.log(res);
     console.table(res);
-    // connection.end();
+    runSearch();
+  });
+}
+
+
+function add_employee() {
+  connection.query("INSERT INTO departments (department_name) VALUES ("QA")", function (err, res) {
+    if (err) throw err;
+    console.table(res);
+    runSearch();
+  });
+}
+
+function add_department() {
+  connection.query("SELECT * FROM departments", function (err, res) {
+    if (err) throw err;
+    console.table(res);
+    runSearch();
+  });
+}
+
+function add_role() {
+  connection.query("SELECT * FROM departments", function (err, res) {
+    if (err) throw err;
+    console.table(res);
+    runSearch();
   });
 }
 
