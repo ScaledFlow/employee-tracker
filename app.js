@@ -21,31 +21,86 @@ const connection = mysql.createConnection({
 connection.connect(function (err) {
   if (err) throw err;
   console.log("connected as id " + connection.threadId);
-  process_roles();
-  process_employees();
-  process_departments();
-  // connection.end();
-  end_connection();
+  // process_roles();
+  // process_employees();
+  // process_departments();
+  runSearch();
+  // end_connection();
 });
 
-function process_roles() {
-  connection.query("SELECT * FROM roles", function (err, res) {
+// function which prompts the user for what action they should take
+
+function runSearch() {
+  inquirer
+    .prompt({
+      name: "action",
+      type: "rawlist",
+      message: "What would you like to do?",
+      choices: [
+        "View All Employees",
+        "View All Employees by Department",
+        "View All Employees by Manager",
+        "Add Employee",
+        "Remove Employee",
+        "Update Employee Role",
+        "Remove Employee Manager",
+        "End Connection",
+      ],
+    })
+    .then(function (answer) {
+      switch (answer.action) {
+        case "View All Employees":
+          view_employees();
+          break;
+
+        case "View All Employees by Department":
+          view_employees_by_dept();
+          break;
+
+        case "View All Employees by Manager":
+          rangeSearch();
+          break;
+
+        case "Add Employee":
+          songSearch();
+          break;
+
+        case "Remove Employee":
+          songAndAlbumSearch();
+          break;
+
+        case "Remove Employee Role":
+          songAndAlbumSearch();
+          break;
+
+        case "Remove Employee Manager":
+          songAndAlbumSearch();
+          break;
+
+        case "End Connection":
+          end_connection();
+          break;
+      }
+    });
+}
+
+function view_employees() {
+  connection.query("SELECT * FROM employees", function (err, res) {
     if (err) throw err;
-    //console.log(res[0].department_name);
-    //console.log(res);
     console.table(res);
-    // connection.end();
+    runSearch();
   });
 }
 
-function process_employees() {
-  connection.query("SELECT * FROM employees", function (err, res) {
-    if (err) throw err;
-    //console.log(res[0].department_name);
-    //console.log(res);
-    console.table(res);
-    // connection.end();
-  });
+function view_employees_by_dept() {
+  connection.query(
+    "SELECT employees.first_name, employees.last_name, roles.title, departments.department_name FROM employees JOIN roles on employees.role_id = roles.role_id JOIN departments on departments.department_id = roles.department_id",
+    function (err, res) {
+      if (err) throw err;
+      console.table(res);
+      runSearch();
+    }
+  );
 }
 
 function process_departments() {
