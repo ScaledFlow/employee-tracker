@@ -1,6 +1,13 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
 const cTable = require("console.table");
+const Employee = require("./lib/Employee");
+const Role = require("./lib/Role");
+const Department = require("./lib/Role");
+
+let employees = [];
+let roles = [];
+let departments = [];
 
 // create the connection information for the sql database
 const connection = mysql.createConnection({
@@ -21,15 +28,10 @@ const connection = mysql.createConnection({
 connection.connect(function (err) {
   if (err) throw err;
   console.log("connected as id " + connection.threadId);
-  // process_roles();
-  // process_employees();
-  // process_departments();
   runSearch();
-  // end_connection();
 });
 
 // function which prompts the user for what action they should take
-
 function runSearch() {
   inquirer
     .prompt({
@@ -81,19 +83,11 @@ function runSearch() {
           break;
 
         case "Add Role":
-          songSearch();
+          add_roles();
           break;
 
-        case "Remove Employee":
-          songAndAlbumSearch();
-          break;
-
-        case "Remove Employee Role":
-          songAndAlbumSearch();
-          break;
-
-        case "Remove Employee Manager":
-          songAndAlbumSearch();
+        case "Update Employee Role":
+          Update_employee_roles();
           break;
 
         case "End Connection":
@@ -102,7 +96,7 @@ function runSearch() {
       }
     });
 }
-
+// Query all employees
 function view_employees() {
   connection.query("SELECT * FROM employees", function (err, res) {
     if (err) throw err;
@@ -111,6 +105,7 @@ function view_employees() {
   });
 }
 
+// Query all departments
 function view_departments() {
   connection.query("SELECT * FROM departments", function (err, res) {
     if (err) throw err;
@@ -119,6 +114,7 @@ function view_departments() {
   });
 }
 
+// Query all roles
 function view_roles() {
   connection.query("SELECT * FROM roles", function (err, res) {
     if (err) throw err;
@@ -127,6 +123,7 @@ function view_roles() {
   });
 }
 
+// Query employees by the department they are in
 function view_employees_by_dept() {
   connection.query(
     "SELECT employees.first_name, employees.last_name, roles.title, departments.department_name FROM employees JOIN roles on employees.role_id = roles.role_id JOIN departments on departments.department_id = roles.department_id",
@@ -138,27 +135,60 @@ function view_employees_by_dept() {
   );
 }
 
-function view_employees_by_manager() {
-  connection.query("SELECT * FROM departments", function (err, res) {
+// Add a role
+function add_roles() {
+  connection.query("SELECT * FROM departments", function (err, results) {
     if (err) throw err;
-    console.table(res);
-    runSearch();
+    inquirer
+      .prompt([
+        {
+          name: "title",
+          type: "input",
+          message: "What is the employees title?",
+        },
+        {
+          name: "salary",
+          type: "input",
+          message: "What is the employees salary?",
+        },
+        {
+          name: "department_id",
+          type: "rawlist",
+          choices: function () {
+            var choiceArray = [];
+            for (var i = 0; i < results.length; i++) {
+              choiceArray.push(results[i].department_id);
+            }
+            return choiceArray;
+          },
+          message: "What department will the employee be in?",
+        },
+      ])
+      .then(function (answer) {
+        console.log(answer);
+        console.log(answer.department_id);
+        connection.query(
+          "INSERT INTO roles SET ?",
+          [
+            {
+              title: answer.title,
+              salary: answer.salary,
+              department_id: answer.department_id,
+            },
+          ],
+          function (err) {
+            if (err) throw err;
+            runSearch();
+          }
+        );
+      });
   });
 }
 
-// connection.query("select * from roles", function (err, res) {
-//   if (err) throw err;
-//   console.table(res);
-//   runSearch();
-// });
-
+// Add and employee
 function add_employee() {
-  // query the database for all items being auctioned
   connection.query("SELECT * FROM roles", function (err, results) {
     if (err) throw err;
-    // console.table(results[0].title);
-    // once you have the items, prompt the user for which they'd like to bid on
-
     inquirer
       .prompt([
         {
@@ -172,28 +202,39 @@ function add_employee() {
           message: "What is the employees last name?",
         },
         {
-          name: "role",
+          name: "role_id",
           type: "rawlist",
           choices: function () {
             var choiceArray = [];
             for (var i = 0; i < results.length; i++) {
-              choiceArray.push(results[i].title);
+              choiceArray.push(results[i].role_id);
             }
             return choiceArray;
           },
-          message: "What role will the employee file?",
+          message: "What role will the employee fill?",
+        },
+        {
+          name: "manager_id",
+          type: "rawlist",
+          choices: [1, 2, 3],
+          message: "What is the manager id?",
         },
       ])
       .then(function (answer) {
         console.log(answer);
+        console.log(answer.role_id);
         connection.query(
-          "select * from Roles",
-          // {
-          //   department_name: answer.addDept,
-          // },
+          "INSERT INTO employees SET ?",
+          [
+            {
+              first_name: answer.first_name,
+              last_name: answer.last_name,
+              role_id: answer.role_id,
+              manager_id: answer.manager_id,
+            },
+          ],
           function (err) {
             if (err) throw err;
-            // console.table(res);
             runSearch();
           }
         );
@@ -201,6 +242,7 @@ function add_employee() {
   });
 }
 
+// Add a department
 function add_department() {
   inquirer
     .prompt({
@@ -217,21 +259,47 @@ function add_department() {
         },
         function (err) {
           if (err) throw err;
-          // console.table(res);
           runSearch();
         }
       );
     });
 }
 
-function add_role() {
-  connection.query("SELECT * FROM departments", function (err, res) {
-    if (err) throw err;
-    console.table(res);
-    runSearch();
-  });
+// Update an employee role
+function Update_employee_roles() {
+  inquirer
+    .prompt([
+      {
+        name: "first_name",
+        type: "input",
+        message: "Enter the employees first name.",
+      },
+      {
+        name: "last_name",
+        type: "input",
+        message: "Enter the employees last name.",
+      },
+      {
+        name: "role_id",
+        type: "input",
+        message: "Enter the employees new department.",
+      },
+    ])
+    .then(function (answer) {
+      console.log(answer.role_id);
+      connection.query(
+        "UPDATE employees SET role_id = ? where first_name = ? and last_name = ?",
+        [answer.role_id, answer.first_name, answer.last_name],
+
+        function (err) {
+          if (err) throw err;
+          runSearch();
+        }
+      );
+    });
 }
 
+// End database connection
 function end_connection() {
   console.log("end connection");
   connection.end();
