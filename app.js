@@ -70,10 +70,6 @@ function runSearch() {
           view_employees_by_dept();
           break;
 
-        case "View All Employees by Manager":
-          view_employees_by_manager();
-          break;
-
         case "Add Employee":
           add_employee();
           break;
