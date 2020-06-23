@@ -43,11 +43,9 @@ function runSearch() {
         "View All Departments",
         "View All Roles",
         "View All Employees by Department",
-        "View All Employees by Manager",
         "Add Employee",
         "Add Department",
         "Add Role",
-        "Remove Employee",
         "Update Employee Role",
         "End Connection",
       ],
@@ -161,8 +159,6 @@ function add_roles() {
         },
       ])
       .then(function (answer) {
-        console.log(answer);
-        console.log(answer.department_id);
         connection.query(
           "INSERT INTO roles SET ?",
           [
@@ -217,8 +213,6 @@ function add_employee() {
         },
       ])
       .then(function (answer) {
-        console.log(answer);
-        console.log(answer.role_id);
         connection.query(
           "INSERT INTO employees SET ?",
           [
@@ -247,7 +241,6 @@ function add_department() {
       message: "Enter the name of the department to add.",
     })
     .then(function (answer) {
-      console.log(answer.addDept);
       connection.query(
         "INSERT INTO departments SET ?",
         {
@@ -282,7 +275,6 @@ function Update_employee_roles() {
       },
     ])
     .then(function (answer) {
-      console.log(answer.role_id);
       connection.query(
         "UPDATE employees SET role_id = ? where first_name = ? and last_name = ?",
         [answer.role_id, answer.first_name, answer.last_name],
